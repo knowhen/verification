@@ -14,22 +14,33 @@ public class ValidationCodeServiceImplTest {
     private ValidationCodeServiceImpl validationCodeService;
     private CodeGenerator generator;
     private SmsService smsService;
+    private AccountService accountService;
     private ValidationCodeRepository codeRepository;
 
     @Before
     public void setUp() {
         generator = mock(CodeGenerator.class);
         smsService = mock(SmsService.class);
+        accountService = mock(AccountService.class);
         codeRepository = mock(ValidationCodeRepository.class);
-        validationCodeService = new ValidationCodeServiceImpl(generator, smsService, codeRepository);
+        validationCodeService = new ValidationCodeServiceImpl(generator, smsService, accountService, codeRepository);
+
+        when(generator.generate(Constant.CODE_LENGTH)).thenReturn(TEST_CODE);
     }
 
     @Test
-    public void testSendCode() {
-        when(generator.generate(Constant.CODE_LENGTH)).thenReturn(TEST_CODE);
+    public void testSendRegistrationCode() {
+        validationCodeService.sendRegistrationCode(TEST_PHONE);
 
-        validationCodeService.sendValidationCode(TEST_PHONE);
+        verify(accountService, times(1)).accountExists(TEST_PHONE);
+        verify(smsService, times(1)).sendMessage(TEST_PHONE, TEST_CODE);
+    }
 
-        verify(smsService).sendMessage(TEST_PHONE, TEST_CODE);
+    @Test
+    public void testSendLoginCode() {
+        validationCodeService.sendLoginCode(TEST_PHONE);
+
+        verify(accountService, times(1)).accountNotFound(TEST_PHONE);
+        verify(smsService, times(1)).sendMessage(TEST_PHONE, TEST_CODE);
     }
 }

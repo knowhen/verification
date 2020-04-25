@@ -49,6 +49,6 @@ public class AccountServiceImplTest {
     public void ifAbsentThenThrowAccountNotFoundException() {
         exception.expect(AccountNotFoundException.class);
         when(repository.findByPhone(TEST_PHONE)).thenReturn(null);
-        accountService.checkExistence(TEST_PHONE);
+        accountService.accountExists(TEST_PHONE);
     }
 }

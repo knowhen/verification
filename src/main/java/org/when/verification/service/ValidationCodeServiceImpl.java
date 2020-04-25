@@ -3,6 +3,8 @@ package org.when.verification.service;
 import org.when.verification.constant.Constant;
 import org.when.verification.domain.CodeGenerator;
 import org.when.verification.entity.ValidationCode;
+import org.when.verification.exception.BizException;
+import org.when.verification.exception.ExEnum;
 import org.when.verification.exception.PersistenceException;
 import org.when.verification.exception.SmsException;
 import org.when.verification.repository.ValidationCodeRepository;
@@ -17,34 +19,52 @@ public class ValidationCodeServiceImpl implements ValidationCodeService {
     private AccountService accountService;
     private ValidationCodeRepository codeRepository;
 
-
     public ValidationCodeServiceImpl(CodeGenerator codeGenerator,
                                      SmsService smsService,
+                                     AccountService accountService,
                                      ValidationCodeRepository codeRepository) {
         this.codeGenerator = codeGenerator;
         this.smsService = smsService;
+        this.accountService = accountService;
         this.codeRepository = codeRepository;
     }
 
     @Override
-    public void sendValidationCode(String phone) {
-        checkExistence(phone);
+    public void sendRegistrationCode(String phone) {
+        // validate pattern of phone
+        // validate rate of sending code
+        // check existence of account
+        accountService.accountExists(phone);
+        sendValidationCode(phone);
+    }
+
+    @Override
+    public void sendLoginCode(String phone) {
+        // validate pattern of phone
+        // validate rate of sending code
+        // check existence of account
+        accountService.accountNotFound(phone);
+        sendValidationCode(phone);
+    }
+
+    @Override
+    public void sendChangePasswordCode(String phone) {
+        accountService.accountNotFound(phone);
+        sendValidationCode(phone);
+    }
+
+    protected void sendValidationCode(String phone) {
         String code = codeGenerator.generate(Constant.CODE_LENGTH);
-        sendValidationCode(phone, code);
+        sendMessage(phone, code);
+        persistentCode(phone, code);
     }
 
-
-    protected void checkExistence(String phone) {
-        accountService.checkExistence(phone);
-    }
-
-    protected void sendValidationCode(String phone, String code) {
+    protected void sendMessage(String phone, String code) {
         try {
             smsService.sendMessage(phone, code);
         } catch (SmsException e) {
-            return;
+            throw new BizException(ExEnum.SEND_CODE_FAILED.getMessage(), e);
         }
-        persistentCode(phone, code);
     }
 
     protected void persistentCode(String phone, String code) {

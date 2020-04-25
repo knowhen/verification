@@ -2,7 +2,11 @@ package org.when.verification.service;
 
 public interface ValidationCodeService {
 
-    void sendValidationCode(String phone);
+    void sendRegistrationCode(String phone);
+
+    void sendLoginCode(String phone);
+
+    void sendChangePasswordCode(String phone);
 
     void validateCode();
 }

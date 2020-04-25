@@ -6,5 +6,8 @@ import java.util.Optional;
 
 public interface AccountService {
     Optional<Account> findByPhone(String phone);
-    void checkExistence(String phone);
+
+    void accountExists(String phone);
+
+    void accountNotFound(String phone);
 }

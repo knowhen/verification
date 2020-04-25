@@ -1,6 +1,7 @@
 package org.when.verification.service;
 
 import org.when.verification.entity.Account;
+import org.when.verification.exception.AccountExistsException;
 import org.when.verification.exception.AccountNotFoundException;
 import org.when.verification.repository.AccountRepository;
 
@@ -24,7 +25,15 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void checkExistence(String phone) {
+    public void accountExists(String phone) {
         findByPhone(phone).orElseThrow(() -> new AccountNotFoundException(phone));
+    }
+
+    @Override
+    public void accountNotFound(String phone) {
+        Optional<Account> optional = findByPhone(phone);
+        if (optional.isPresent()) {
+            throw new AccountExistsException(phone);
+        }
     }
 }
